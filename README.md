@@ -1,7 +1,11 @@
 # Weakly Supervised Spatial Deep Learning
 ### KDD 2021 Submission
 
+---
+
+## Resources:
 [Github](https://github.com/spatialdatasciencegroup/WeaklySupervisedSpatialDeepLearning)
+
 ---
 
 ## Project Description
