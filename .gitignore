@@ -10,7 +10,7 @@ data/
 data_*
 
 # File archive
-Retired/
+retired/
 
 # Testing Files and data
 Miscellaneous.ipynb
