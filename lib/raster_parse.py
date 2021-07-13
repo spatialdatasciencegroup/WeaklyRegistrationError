@@ -3,6 +3,7 @@ import rasterio as rio
 import numpy as np
 
 import rasterio.windows as rwin
+import rasterio.mask as rmask
 
 import lib.GeoTools as gt
 
@@ -106,8 +107,8 @@ def cut_shapes(raster, shapes, out_path):
     """
     Cuts shapes from raster
     """
-    masked_data, trans = rmask.mask(merged, shapes=shapes, all_touched=True, invert=True, nodata=raster.nodata, filled=True)
-    return gt.ND_Raster(masked_data, merged, nodata=raster.nodata, out_path=out_path)
+    masked_data, trans = rmask.mask(raster, shapes=shapes, all_touched=True, invert=True, nodata=raster.nodata, filled=True)
+    return gt.ND_Raster(masked_data, raster, nodata=raster.nodata, out_path=out_path)
 
 
 import numpy as np
@@ -124,43 +125,4 @@ def raster_norm(band, min_nodata, new_nodata=-1e-04):
     
     return ma.filled(masked_normal, fill_value=new_nodata).astype('float32')
 
-
-def preconfiged_merge():
-    """ NOTE: Does not work because these layers need casting into the correct scene. """
-    
-    # Re-merge to add slope
-    import os, sys
-    import numpy as np
-    import numpy.ma as ma
-    import rasterio as rio
-    import geopandas as gpd 
-
-    naip_layers = rio.open('/data/GeometricErrors/GeometricErrorStudyArea2/naip.tif')
-    dem_layer   = rio.open('/data/GeometricErrors/GeometricErrorStudyArea2/DEM.tif')
-    slope_layer = rio.open('/data/GeometricErrors/GeometricErrorStudyArea2/slope_1m_full.tif')
-    tpi_layer   = rio.open('/data/GeometricErrors/GeometricErrorStudyArea2/tpi_9_1m.tif')
-
-    print(naip_layers.nodata)
-    print(dem_layer.nodata)
-    print(slope_layer.nodata)
-    print(tpi_layer.nodata)
-
-
-    normal_bands = []
-
-    all_bands = [naip_layers.read(idx) for idx in naip_layers.indexes]
-    for band in all_bands:
-        normal_bands.append(raster_norm(band, 0.0))
-
-
-    dem_data = np.squeeze(dem_layer.read(1))
-    normal_bands.append(raster_norm(dem_data, -10000))
-
-    slope_data = np.squeeze(slope_layer.read(1))
-    normal_bands.append(raster_norm(slope_data, -9998))
-
-    tpi_data = np.squeeze(tpi_layer.read(1))
-    normal_bands.append(raster_norm(tpi_data, -10000))
-    
-    return normal_bands
 

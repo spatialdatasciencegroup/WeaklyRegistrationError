@@ -46,7 +46,7 @@ LR_PLOT = [{ # Learning Rate Plot
         }]
 
 
-def mkdir_safe(path):
+def mkdir_safe(path: str):
     """ Make dir with duplicate awareness. """
     try:
         os.mkdir(path)
@@ -54,9 +54,10 @@ def mkdir_safe(path):
     except FileExistsError:
         i = 1
         while True:
-            if not os.path.exists(path + '({})'.format(i)):
-                os.mkdir(path + '({})'.format(i))
-                return path + '({})'.format(i)
+            indexed_path = path + ' ({})'.format(i)
+            if not os.path.exists(indexed_path):
+                os.mkdir(indexed_path)
+                return indexed_path
             else:
                 i += 1
     

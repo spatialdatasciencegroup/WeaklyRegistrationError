@@ -7,19 +7,11 @@ __pycache__/
 
 # Data 
 data/
-data_*
-
-# File archive
-retired/
 
 # Testing Files and data
-Miscellaneous.ipynb
 tests/
 test_*
-
-# Mass testing notebooks for DLW
-*MassTesting*
-GeoErrors_Utility.ipynb
+retired/
 
 # Tensorboard Folders
 *tensorboard*
@@ -28,3 +20,5 @@ GeoErrors_Utility.ipynb
 # Archives for uploading
 *.zip
 
+# Local config
+config.py

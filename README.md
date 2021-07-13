@@ -18,7 +18,7 @@ To make this system more widely available, the `user-ready` branch will store a 
 
 ### Acompanied Data
 Data must be made available through some dropbox link. Scene01 will be used, and as much of the preprocessing as possible should be done after download.
-- `merged_raster.tif`: Contains all bands, normalized in scene01
+- `merged_imagery.tif`: Contains all bands, normalized in scene01
 - `imperfect_labels.shp`: Imperfect stream labels shapefile across entire merged raster
 - `refined_labels.shp`: Hand-refined stream labels shapefile across entire merged raster
 
@@ -27,3 +27,15 @@ The tool will require a configured Python environment, as well as some system pa
 
 ### Step 01: Parse Raw Data
 In a terminal-activated script, the user will parse the raw data (from dropbox) into model-ready tensors.
+
+### Step 02: Test Baseline Model
+In another notebook, the user can test the UNet model with their prepared tensors for one training iteration. 
+
+### Step 03: Test EM Pipeline
+The final step is a user-ready EM pipeline, where they can run the system step-by-step or with a fixed number of steps in a loop.
+
+### Step 04: View Results
+Output will be held in results folder, the path of which determined by `RESULTS_DIR` in `config.py`.
+
+### Documentation
+Need to create some sort of requirements file for conda and pip.
