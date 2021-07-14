@@ -12,7 +12,7 @@ import lib.GeoTools as gt
 For tiling rasters. 
 """
 
-def SampleTestTiles(raster, labels, label_buffer=0.0, target=200, out_poly_dir=None):
+def SampleTestTiles(raster, labels, label_buffer=0.0, target=200, out_poly_dir=None, verbose: bool=True):
     """ Sample Testing Tensor. """
 
     # Get small buffered label raster
@@ -27,7 +27,8 @@ def SampleTestTiles(raster, labels, label_buffer=0.0, target=200, out_poly_dir=N
     lgBuffLabels = gt.GDF_Buffer(labels, wide_buffer, True)
     lgLabel_raster = gt.GDF_Rasterize(lgBuffLabels, raster, out_path=None)
     lgLabel_data = np.squeeze(lgLabel_raster.read())
-    print("Labels Rasterized")
+    if verbose:
+        print("Labels Rasterized")
 
     
     # Reading Pixel Data
@@ -36,7 +37,8 @@ def SampleTestTiles(raster, labels, label_buffer=0.0, target=200, out_poly_dir=N
     pixel_index = np.where(data==1)
     # assuming row-wise scanning in returned where vector
     pixel_data=[[pixel_i, pixel_j, 1] for pixel_i, pixel_j in zip(pixel_index[0],pixel_index[1])]
-    print("Read in {} pixels.".format(len(pixel_data)))
+    if verbose:
+        print("Read in {} pixels.".format(len(pixel_data)))
                 
     # Sample Filled Tiles
     filledWindows, filled_boxes = [], []
@@ -56,7 +58,8 @@ def SampleTestTiles(raster, labels, label_buffer=0.0, target=200, out_poly_dir=N
             Y_tiles.append(label_win)
             (MinX, MinY, MaxX, MaxY) = win.bounds(newWin, raster.transform)
             filled_boxes.append(shp.box(MinX, MinY, MaxX, MaxY))
-    print("Sampled Filled Windows")
+    if verbose:
+        print("Sampled Filled Windows")
 
     # Sample EMpty Windows
     emptyWindows, empty_boxes = [], []
@@ -75,7 +78,8 @@ def SampleTestTiles(raster, labels, label_buffer=0.0, target=200, out_poly_dir=N
                 (MinX, MinY, MaxX, MaxY) = win.bounds(newWin, raster.transform)
                 empty_boxes.append(shp.box(MinX, MinY, MaxX, MaxY))
                 
-    print("Sampled Empty Windows")
+    if verbose:
+        print("Sampled Empty Windows")
     
     if out_poly_dir:
         if not os.path.exists(out_poly_dir): 
@@ -98,14 +102,12 @@ def SampleTestTiles(raster, labels, label_buffer=0.0, target=200, out_poly_dir=N
 
 
 
-def SampleTiles(raster, labels, label_buffer=0.0, nodata=0.0, target=200, val_target=80, out_poly_dir=None):
+def SampleTiles(raster, labels, label_buffer=0.0, nodata=0.0, train_target=200, val_target=80, out_poly_dir=None, verbose: bool=True):
     """ Sample Training and Validation Tensors. """
     train_tile_offsets = []
     val_tile_offsets = []
 
 
-    # NOTE: 
-    
     # Get small buffered label raster
     if label_buffer > 0.0:
         smBuffLabels = gt.GDF_Buffer(labels, label_buffer, True)
@@ -119,7 +121,8 @@ def SampleTiles(raster, labels, label_buffer=0.0, nodata=0.0, target=200, val_ta
     lgBuffLabels = gt.GDF_Buffer(labels, wide_buffer, True)
     lgLabel_raster = gt.GDF_Rasterize(lgBuffLabels, raster)
     lgLabel_data = np.squeeze(lgLabel_raster.read())
-    print("Labels Rasterized")
+    if verbose:
+        print("Labels Rasterized")
 
     
     # Reading Pixel Data
@@ -155,10 +158,11 @@ def SampleTiles(raster, labels, label_buffer=0.0, nodata=0.0, target=200, val_ta
             X_filled_tiles.append(image_win)
             Y_filled_tiles.append(label_win)
 
-        if len(filledWindows) >= target:
+        if len(filledWindows) >= train_target:
             break
             
-    print("Sampled {} Filled Windows".format(len(filledWindows)))
+    if verbose:
+        print("Sampled {} Filled Windows".format(len(filledWindows)))
 
     # Sample Empty Windows
     emptyWindows = []
@@ -176,7 +180,8 @@ def SampleTiles(raster, labels, label_buffer=0.0, nodata=0.0, target=200, val_ta
                 emptyWindows.append(newWin)
                 X_empty_tiles.append(image_win)
                 Y_empty_tiles.append(label_win)
-    print("Sampled Empty Windows")
+    if verbose:
+        print("Sampled Empty Windows")
     
     # Select Filled Validation Tiles
     filled_void_boxes, empty_void_boxes = [], []
@@ -213,8 +218,9 @@ def SampleTiles(raster, labels, label_buffer=0.0, nodata=0.0, target=200, val_ta
             (MinX, MinY, MaxX, MaxY) = win.bounds(window, raster.transform)
             filled_train_boxes.append(shp.box(MinX, MinY, MaxX, MaxY))
 
-    print("Filled Validation Tiles:", len(val_img))
-    print("Filled Training Tiles:", len(train_img))
+    if verbose:
+        print("Filled Validation Tiles:", len(val_img))
+        print("Filled Training Tiles:", len(train_img))
     
     # Save Empty Validation Windows
     empty_blacklist = []

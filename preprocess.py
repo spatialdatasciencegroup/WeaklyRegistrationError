@@ -32,9 +32,9 @@ TRAIN_TARGET = 500
 VAL_TARGET = 150
 # Tile upsampling options
 AUGMENT_OPTIONS = dict(
-    horizontal_flip = False,
-    vertical_flip = True,
-    rotate = True
+    h_flip = False, # Horizontal Flip
+    v_flip = True,  # Vertical Flip
+    rotate = True   # 90deg rotation
 )
 ### ---------------
 
@@ -72,8 +72,10 @@ if ((not test_raster) or (not train_raster)):
 # Load label shapefiles
 imperfect_label_fp = os.path.join(INPUT_DATA_DIR, 'imperfect_labels.shp')
 imperfect_labels = gpd.read_file(imperfect_label_fp)
+imperfect_labels.to_crs(train_raster.crs, inplace=True)
 refined_label_fp = os.path.join(INPUT_DATA_DIR, 'refined_labels.shp')
 refined_labels = gpd.read_file(refined_label_fp)
+refined_labels.to_crs(train_raster.crs, inplace=True)
 
 printv("> Successfully loaded raw data.")
 

@@ -19,7 +19,8 @@ if not os.path.exists('./config.py'):
 
 # Print environment configuration
 from config import *
+import pathlib
 required_dirs = [INPUT_DATA_DIR, TENSOR_DIR, RESULTS_DIR]
 for env_dir in required_dirs:
     if not os.path.exists(env_dir):
-        os.mkdir(env_dir)
+        pathlib.Path(env_dir).mkdir(parents=True)
