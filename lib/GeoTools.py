@@ -112,15 +112,14 @@ def list_obj(a):
             a = [a]
     return list(a)
             
-def gdf_iou(gdf_a, gdf_b, buffer):
+def gdf_iou(gdf_a, gdf_b, buffer: float = 6.0):
     """ Gets the intersection over union of two geodataframes with the same CRS.
 
     Args:
         gdf_a (gpd.GeoDataFrame): First frame to be compared.
         gdf_b (gpd.GeoDataFrame): Second frame to be compared.
             Note: Frames must have the same coordinate reference system.
-
-        buffer (float): Buffer to apply before comparing IoU value.
+        buffer (float): Buffer (in meters) to apply before comparing IoU value.
     
     Returns:
         float (0-1): Intersection / Union of geometries after buffering.

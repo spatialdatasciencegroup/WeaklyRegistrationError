@@ -39,6 +39,16 @@ The EM Notebook does **not** have GPU training built in for simplicity. May want
 
 The EM Notebook no longer has the preload parameter, all candidates must be generated at runtime. 
 
+#### Config - Wenchong's Optimal Run
+- Total steps: base + 14
+- buff_dist schedule:
+  - Step 00: buff_dist=4
+  - Step 01-Step 13: buff_dist=2
+- learning_rate schedule:
+  - Step 00-Step 05: learning_rate=0.1
+  - Step 06-Step 11: learning_rate=0.05
+  - step 12-13: learning_rate=0.02
+
 ### Step 04: View Results
 Output will be held in results folder, the path of which determined by `RESULTS_DIR` in `config.py`.
 
