@@ -304,7 +304,7 @@ def Get_Metric(history, metric):
     return history.history[metric][len(history.history[metric])-1]
 
 
-def ModelReport(X, Y, model, report_type, index=0, print_report=True, report_md=None):
+def ModelReport(X, Y, model, report_type, index=0, print_report=False, report_md=None):
     """ Get current model preformance, save to dict and print. 
     
     Args:
@@ -342,10 +342,6 @@ def ModelReport(X, Y, model, report_type, index=0, print_report=True, report_md=
         'Keras_Recall': keras_recall(y_true, y_pred),
     }
 
-    if 'Test' in report_type:
-        # Only compute confusion matrix for testing
-        report.update({'Confusion Matrix': tf.math.confusion_matrix(np.round(y_true), np.round(y_pred), num_classes=2)})
-    
     # Write to markdown if passed
     if report_md:
         report_md.write('{} Report {:02}\n'.format(report_type, index))
@@ -364,10 +360,15 @@ def ModelReport(X, Y, model, report_type, index=0, print_report=True, report_md=
                 print(' - {}: {}\n'.format( key, item ))
             else:    
                 print(' - {}: {:.3f}'.format( key, (item*100) ))
-        
     return report 
 
-
+def PrintReport(model_report: dict, spaces: int = 4):
+    """ Prints a model report from the above ModelReport Function. """
+    for key, item in model_report.items():
+        if key == 'Confusion Matrix':
+            continue
+        else:   
+            print(f"{(' '*spaces)}- {key}: {np.round((item*100), 3)}")
 
 
 ### Model Tools
