@@ -1,27 +1,11 @@
-import os, sys, tempfile
-
+import os, sys
 import numpy as np
-
-import keras 
 import tensorflow as tf
 import keras.metrics as kmetrics
-
-from keras.layers import UpSampling2D
-from keras.layers.normalization import BatchNormalization
-from keras.layers.core import SpatialDropout2D, Activation
-from keras.layers.convolutional import Conv2D, Conv2DTranspose
-from keras.layers.pooling import MaxPooling2D
-from keras.layers.merge import concatenate
-from keras.layers import Input
-from keras.layers.core import Dropout, Lambda
-from keras.models import Model, save_model, load_model
 import matplotlib.pyplot as plt
-from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau, TensorBoard
-
 import keras.backend as K
 
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import classification_report
+from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau, TensorBoard
 
 # Model imports
 import lib.models.UNET as unet  
@@ -29,9 +13,10 @@ import lib.models.FCN as fcn
 import lib.models.SegNet as segnet  
 import lib.models.DeepLab as deeplab
 
-# Local Module
+# Local Modules
 import lib.GeoTools as gt
 import lib.Tiling as tile
+import lib.Doc_Tools as doc
 
 """
 Tools for the Keras module handling model preparation and evaluation.
@@ -338,8 +323,6 @@ def ModelReport(X, Y, model, report_type, index=0, print_report=False, report_md
         'False_Negatives': false_negatives(y_true, y_pred),
         'Precision': precision(tf.cast(y_true, tf.float32), tf.cast(y_pred, tf.float32)),
         'Recall': recall(tf.cast(y_true, tf.float32), tf.cast(y_pred, tf.float32)),
-        'Keras_Precision': keras_precision(y_true, y_pred),
-        'Keras_Recall': keras_recall(y_true, y_pred),
     }
 
     # Write to markdown if passed
@@ -354,21 +337,10 @@ def ModelReport(X, Y, model, report_type, index=0, print_report=False, report_md
         
     # print report if passed
     if print_report:
-        print('{} Report {:02}'.format(report_type, index))
-        for key, item in report.items():
-            if key == 'Confusion Matrix':
-                print(' - {}: {}\n'.format( key, item ))
-            else:    
-                print(' - {}: {:.3f}'.format( key, (item*100) ))
+        print(f'{report_type} Report {index:02}')
+        doc.print_report(report, spaces=2)
+        print()
     return report 
-
-def PrintReport(model_report: dict, spaces: int = 4):
-    """ Prints a model report from the above ModelReport Function. """
-    for key, item in model_report.items():
-        if key == 'Confusion Matrix':
-            continue
-        else:   
-            print(f"{(' '*spaces)}- {key}: {np.round((item*100), 3)}")
 
 
 ### Model Tools
@@ -395,7 +367,7 @@ def intermediate_model(model, layer_index: int = -2):
     # Return model up to layer index. 
     return tf.keras.Model(inputs=model.input, outputs=model.get_layer(index=layer_index).output)
 
-def Get_Pmap(source_raster, pmodel, pmap_fp):
+def Get_Pmap(source_raster, pmodel, pmap_fp: str=None):
     """ 
     Use a trained Keras model to generate a probability output map covering the entire raster. 
     Tiles input raster, runs predictor on tiled windows, then appends the output windows, covering nearly the entire raster.

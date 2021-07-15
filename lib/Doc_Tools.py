@@ -1,4 +1,4 @@
-import os, sys, csv, time, math
+import os, sys, csv
 
 # Math
 import numpy as np
@@ -9,6 +9,7 @@ from datetime import datetime as dt
 from datetime import timedelta
 import pytz
 
+from lib.envtools import gettime
 """
 Module for documenting tests in the GeoErrors Project.
 
@@ -62,59 +63,40 @@ def mkdir_safe(path: str):
                 i += 1
     
 
-def InitTest(root_dir, prompt=False, **kwargs):
+def InitTest(root_dir, test_name: str='em_results'):
     """ Initializes test folder for saving config and parameters. 
     
     Args:
         root_dir: parent folder that holds testing data
         config: dict holding info on EM iteration hyperparameters, etc.
-        prompt: optionally prompts user for test notes
-            False: Silent, no prompts will be displayed
-            True:  Prompts test notes
-        Pass test parameters as kwargs
-
     Returns:
         (int) test_idx: index of EM test.
-    """
-    
-    root_name = os.path.split(root_dir)[1]
-    csv_fp = os.path.join(root_dir, '{}.csv'.format(root_name))
-    
+        (str) test_dir: directory for test output
+    """    
     if not os.path.exists(root_dir):
-        print("Initializing root test dir: {}".format(root_dir))
+        print(f"Initializing root test dir: {root_dir}")
         os.mkdir(root_dir)
-
-        with open(csv_fp, 'a+', newline='\n') as csvfile:
-            main_csv = csv.writer(csvfile, delimiter=',')
-            header = [root_name, 'date']
-            header.extend([key for key in kwargs.keys()])
-            main_csv.writerow(header)
-
-
-    test_idx = len(os.listdir(root_dir))        
+    test_idx = len(os.listdir(root_dir))       
     
-    with open(csv_fp, 'a+', newline='\n') as csvfile:
-            main_csv = csv.writer(csvfile, delimiter=',')
-            row = ['Test_{:02}'.format(test_idx), dt.now().strftime('%m/%d/%Y')]
-            row.extend([item for _, item in kwargs.items()])
-            main_csv.writerow(row)
-
-    if 'test_name' in kwargs.keys():
-        test_name = kwargs['test_name']
-    else:
-        test_name = 'Test_'
-
-    test_fp = '{}/{}{:02}'.format(root_dir, test_name, test_idx)
+    # Format test name
+    if test_name[-1] != '_':
+        test_name = f"{test_name}_"
+    test_name = f"{test_name}{test_idx:02}"
     
+    # make directory for test output
+    test_fp = os.path.join(root_dir, test_name)
     if os.path.exists(test_fp):
-        raise RuntimeError("Test folder already exists: '{}'".format(test_fp))
-    else: 
-        os.mkdir(test_fp)
-
+        sel = input(f"Output folder already exists: '{test_fp}'  Overwrite? [y]/n")
+        if ('y' in sel) or (sel.replace(' ', '') == ''):
+            os.rmdir(test_fp)
+        else:
+            print("Exiting.")
+            sys.exit(0) #! This is not the best way to exit
+    os.mkdir(test_fp)
     return test_idx, test_fp
 
 
-def plot_axis(ax, data, name, color_char='r', symbol_char='o', y_off=1., x_label=None, label_delta=True, label_base=True):
+def plot_axis(ax, data, name, color_char='r', symbol_char='o', y_off=1., x_label=None, label_delta=False, label_base=True):
     """ Creates a pyplot chart of data by em step for different keys in the passed dict. 
     
     Args:
@@ -126,7 +108,6 @@ def plot_axis(ax, data, name, color_char='r', symbol_char='o', y_off=1., x_label
         y_off (float): Verticle offset for datapoint labeling
         x_label (str): optinal string to label x_axis of plot.
         label_delta (bool [True]): Optionally label delta from baseline at each point
-        label_delta (bool [True]): Optionally label baseline point and line
     
     Returns:
         plt.figure: Pyplot figure of all plots.
@@ -187,8 +168,6 @@ def plot_axis(ax, data, name, color_char='r', symbol_char='o', y_off=1., x_label
     ax.margins(0.1, 0.3)
 
     return
-
-
 
 def plot_multi_axis(ax, plot_info, plot_title=None, y_label=None, x_label=None, y_off=1., x_margin=0.1, y_margin=0.3):
     """ 
@@ -291,6 +270,12 @@ def plot_multi_axis(ax, plot_info, plot_title=None, y_label=None, x_label=None, 
     
     return ax
 
+def print_report(model_report: dict, spaces: int = 4):
+    """ Prints a model report dict from ktools.ModelReport() """
+    KEY_BLACKLIST = ['False_Positives', 'False_Negatives', 'Precision', 'Recall']
+    for key, item in model_report.items():
+        if key not in KEY_BLACKLIST:
+            print(f"{(' '*spaces)}- {key}: {np.round((item*100), 3)}")
 
 def plot_history(training_history, loss_plot=LOSS_PLOT, f1_plot=F1_PLOT, lr_plot=LR_PLOT, test_dir=None, config_idx=0):
     """ Plots history from keras.history. Used for MassTesting currently. 
@@ -445,5 +430,25 @@ def parameter_permutations(parameters: dict, expected_step_sec: int):
 
 
 
-def plot_keras_history():
-    """ Plots data from a keras model's history object. """
+def get_model_dict(em_dict: dict): 
+    """ Reformats model-related contents of em_dict for plotting """
+    model_dict = {'Test_Data': {}, 'Train_Data': {}, 'Val_Data': {}}
+    for em_key in model_dict.keys():
+        for report in em_dict[em_key]:
+            for rpt_key, rpt_value in [(key, item) for key, item in report.items()]:
+                if rpt_key not in model_dict[em_key].keys():
+                    model_dict[em_key].update({rpt_key: np.array([rpt_value])})
+                else:
+                    model_dict[em_key][rpt_key] = np.append(model_dict[em_key][rpt_key], report[rpt_key])
+    return model_dict
+
+def print_s(idx: int=None, *args):
+    """ Prints args with em step and time """
+    TIME_FORMAT = '%b %d | %I:%M:%S%p'
+    ALT_FORMAT = '%a at %I:%M:%S%p'
+    
+    print(*args)
+    if idx or (idx==0):
+        print(f"[{gettime(TIME_FORMAT)}] (Step {idx:02})\n")
+    else:
+        print(f"[{gettime(TIME_FORMAT)}]\n")

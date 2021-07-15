@@ -1,18 +1,14 @@
-import os, sys, time, math, random
-
-
+import os
 import numpy as np
-
 import numpy.ma as ma
-
 import geopandas as gpd
-import rasterio as rio
 
 import rasterio.features as rfeat
 import rasterio.windows as rwin
-
-
 import shapely.geometry as shp
+
+from lib.envtools import gettime
+from lib.Doc_Tools import print_s
 
 from lib.annotators.Annotator import Annotator, anno_kwargs_key
 
@@ -418,7 +414,8 @@ class Dynamic_Preloading_Annotator(Annotator):
             list(gpd.GeoDataFrame): One GeoDataFrame of candidate points for each Linestring in source. (flatten=False)
         """  
 
-        
+        print("Now preloading candidate geometries. (This may take a while)")
+        print("Start time:", gettime(),'\n')
         self.class_map = class_map
 
         # set window for cropping geoms and clip geometries
@@ -490,9 +487,10 @@ class Dynamic_Preloading_Annotator(Annotator):
 
                 #print("- Finished Group {} of {} (Line {}).".format(i, len(candidate_groups)-1, idx))
 
-            print("Completed Line {} of {}.\n".format(idx, len(gdf.geometry)-1))
+            print(f"> Completed Line {idx} of {len(gdf.geometry)-1}.")
             all_line_data.append(line_data)
-            
+        
+        print_s(None, "Preloading Complete.")
         return all_line_data
 
 

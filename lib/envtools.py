@@ -1,7 +1,8 @@
 """
-Misc Info
-=========
-Prints random stuff.
+Environment Tools
+=================
+Handles printing, scheduling, 
+and other features exclusive to public use.
 """
 
 from datetime import datetime as dt 
@@ -23,3 +24,17 @@ def get_tf_gpus():
         gpus.append(gpu_name)
     print(gpus)    
     return gpus
+
+def lr_schedule(index: int):
+    """ 
+    A hard-coded learning rate schedule 
+    based on the best-performing EM run. """
+    if index in range(0,6):
+        return 0.1
+    elif index in range(6,12):
+        return 0.05
+    elif index in range(12,14):
+        return 0.02
+    else:
+        raise RuntimeError(f"Invalid index passed: {index}. This schedule is only configured for EM tests with 14 steps.")
+    
