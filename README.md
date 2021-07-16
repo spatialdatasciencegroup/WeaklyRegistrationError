@@ -1,58 +1,52 @@
 # Weakly Supervised Spatial Deep Learning
-### KDD 2021 Submission
+
+Originally written for KDD 2021 Submission.
+
+This repository has been configured for installation and usage to verify the efficacy of the Geometric Annotation Errors system. 
+
+## About
+To add...
+
+---
+
+### Requirements
+- **Python** >=3.7
+- **tensorflow** >=2.2.0,<2.3.0
+- **tensorboard** >=2.2.2
+- **rasterio** >=1.1.5
+- **geopandas** ==0.8.1
+- **scikit-learn** ==0.23.2
+- **matplotlib** >= 3.2.2
+See `requirements.txt` for a full list.
+
+## Using the Pipeline
+
+#### 1. Geting the Source Data 
+A few small image and shape files are required to run the code locally, which have been made available through ?dropbox? here: [LINK TDB]. The archive contains a small sample of labeled satellite imagery to train the UNet model during the EM algorithm.
+
+Simply download the .zip and extract the contents to the root folder for this repository. After running the setup script, make sure `INPUT_DATA_DIR` in `config.py` is set to the extracted directory.   
+
+Required files:
+- `train_raster.tif`: Training imagery
+- `train_raster.tif`: Testing imagery
+- `imperfect_labels.shp`: Imperfect streamline labels 
+- `refined_labels.shp`: Hand-refined ground truth streamline labels
+#### 2. Set up environment
+After cloning or downloading this repository, ensure you've properly set up a Python environment to execute the pipeline in. A list of the required packages is provided above. 
+
+Next, run the `setup.py` file in the root directory. This will create `config.py` and some filepaths for hosting input data and storing results. 
+
+Ensure the constant `INPUT_DATA_DIR` in the newly generated `config.py` file is set to the folder containing the extracted data from ?dropbox?.
+
+#### 3.  Parsing the Training Data
+To convert the raw imagery and labels into training-ready data, run `preprocess.py`. The tensors produced by this script will be saved in `TENSOR_DIR` specified in `config.py`. 
+
+### 4. Run the Pipeline
+Once the tensors have been generated, open `GeoErrors-EM.ipynb` with an IPython notebook editor to run the pipeline. Outputs for the test will be printed in the notebook and saved in an indexed sub-folder under the `RESULTS_DIR` path specified in `config.py`.
 
 ---
 
 ## Resources:
-[Github](https://github.com/spatialdatasciencegroup/WeaklySupervisedSpatialDeepLearning)
-
----
-
-## Project Description
-TO ADD...
-
----
-
-
-
-## User Interface Tool Task List (Internal use only)
-To make this system more widely available, the `user-ready` branch will store a version of this code to allow installation and testing of the EM System.
-
-### Acompanied Data
-Data must be made available through some dropbox link. Scene01 will be used, and as much of the preprocessing as possible should be done after download.
-- `train_raster.tif`: scene01 normalized training area raster
-- `test_raster.tif`: scene01 normalized testing area raster
-- `imperfect_labels.shp`: Imperfect stream labels shapefile across entire merged raster
-- `refined_labels.shp`: Hand-refined stream labels shapefile across entire merged raster
-
-### User configuration
-The tool will require a configured Python environment, as well as some system parameters to be set by the user upon download. Static configuration can be done in a config.py file, a template for which will be included in the repository. A `setup.py` script can also be used to configure this with some sort of cli. The data will of course be retrieved manually.
-
-### Step 01: Parse Raw Data
-In a terminal-activated script, the user will parse the raw data (from dropbox) into model-ready tensors.
-
-### Step 02: Test Baseline Model
-In another notebook, the user can test the UNet model with their prepared tensors for one training iteration. 
-
-### Step 03: Test EM Pipeline
-The final step is a user-ready EM pipeline, where they can run the system step-by-step or with a fixed number of steps in a loop.
-
-The EM Notebook does **not** have GPU training built in for simplicity. May want to add a note about this is the end description.
-
-The EM Notebook no longer has the preload parameter, all candidates must be generated at runtime. 
-
-#### Config - Wenchong's Optimal Run
-- Total steps: base + 14
-- buff_dist schedule:
-  - Step 00: buff_dist=4
-  - Step 01-Step 13: buff_dist=2
-- learning_rate schedule:
-  - Step 00-Step 05: learning_rate=0.1
-  - Step 06-Step 11: learning_rate=0.05
-  - step 12-13: learning_rate=0.02
-
-### Step 04: View Results
-Output will be held in results folder, the path of which determined by `RESULTS_DIR` in `config.py`.
-
-### Documentation
-Need to create some sort of requirements file for conda and pip.
+- [Github](https://github.com/spatialdatasciencegroup/WeaklySupervisedSpatialDeepLearning)
+- [Paper Link]() - To add
+- [Jiang Lab](https://www.jiangteam.org/)

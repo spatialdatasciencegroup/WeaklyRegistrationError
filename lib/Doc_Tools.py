@@ -277,7 +277,7 @@ def print_report(model_report: dict, spaces: int = 4):
         if key not in KEY_BLACKLIST:
             print(f"{(' '*spaces)}- {key}: {np.round((item*100), 3)}")
 
-def plot_history(training_history, loss_plot=LOSS_PLOT, f1_plot=F1_PLOT, lr_plot=LR_PLOT, test_dir=None, config_idx=0):
+def plot_history(training_history, loss_plot=LOSS_PLOT, f1_plot=F1_PLOT, lr_plot=LR_PLOT, test_dir=None, config_idx=0, write_csv=False):
     """ Plots history from keras.history. Used for MassTesting currently. 
     
     Notes:
@@ -298,7 +298,6 @@ def plot_history(training_history, loss_plot=LOSS_PLOT, f1_plot=F1_PLOT, lr_plot
         config_idx = '{:02}'.format(config_idx)
     
     ## Update Data for Keras History Plots
-    
     ### Update training loss data
     train_loss = np.array(training_history.history['loss'])
     loss_plot[0].update({'data': train_loss})
@@ -328,7 +327,6 @@ def plot_history(training_history, loss_plot=LOSS_PLOT, f1_plot=F1_PLOT, lr_plot
                     x_margin=0.02,
                     y_margin=0.02)
 
-
     ### Plot Loss History
     plot_multi_axis(ax=loss_ax, 
                     plot_info=loss_plot,
@@ -347,87 +345,21 @@ def plot_history(training_history, loss_plot=LOSS_PLOT, f1_plot=F1_PLOT, lr_plot
                     y_margin=0.02)
 
     ### Title and save figure
-    hist_fig.suptitle("History {}".format(config_idx), x=0.2, y=1, fontsize='x-large', fontweight='bold')
+    hist_fig.suptitle(f"History {config_idx}", x=0.2, y=1, fontsize='x-large', fontweight='bold')
     hist_fig.tight_layout()
-    hist_fig_path = os.path.join(test_dir, 'history_plot_{}.png'.format(config_idx))
+    hist_fig_path = os.path.join(test_dir, f'training_history_{config_idx}.png')
     hist_fig.savefig(hist_fig_path)
     hist_fig.show()
     
-    ### Save to CSV file 
-    csv_fp = os.path.join(test_dir, 'history_{}.csv'.format(config_idx))
-    with open(csv_fp, 'w') as csvfile:
-        hist_csv = csv.writer(csvfile, delimiter=',')
-        hist_csv.writerow(['Epoch', 'Train Loss', 'Val Loss', 'Train F1', 'Val F1', 'Learning_Rate'])
-        for idx, (t_l, v_l, t_f1, v_f1, lr) in enumerate(zip(train_loss, val_loss, train_f1, val_f1, lr_hist)):
-            hist_csv.writerow([idx, t_l, v_l, t_f1, v_f1, lr])    
+    if write_csv:
+        # Save to CSV file 
+        csv_fp = os.path.join(test_dir, f'training_history_{config_idx}.csv')
+        with open(csv_fp, 'w') as csvfile:
+            hist_csv = csv.writer(csvfile, delimiter=',')
+            hist_csv.writerow(['Epoch', 'Train Loss', 'Val Loss', 'Train F1', 'Val F1', 'Learning_Rate'])
+            for idx, (t_l, v_l, t_f1, v_f1, lr) in enumerate(zip(train_loss, val_loss, train_f1, val_f1, lr_hist)):
+                hist_csv.writerow([idx, t_l, v_l, t_f1, v_f1, lr])    
     return
-
-# Mass testing tools
-
-def init_mass_baseline(root_dir):
-    """ Create folder for mass baseline test.
-    
-    Args:
-        root_dir (str): Root test folder to hold all mass tests.
-        
-    Returns:
-        int (test_idx),    Index of this test 
-        str (test_dir)     Directory for this test
-    """
-    
-    # Validate root folder and get test index
-    if not os.path.exists(root_dir):
-        os.mkdir(root_dir)
-        test_idx = 0
-    else:
-        test_idx = len(os.listdir(root_dir))
-    
-    # Create test folder
-    test_dir = os.path.join(root_dir, 'Mass_Baseline_{:02}'.format(test_idx))
-    
-    return test_idx, mkdir_safe(test_dir)
-    
-
-def parameter_permutations(parameters: dict, expected_step_sec: int):
-    """ 
-    Prepare all permutations of the parameters and return list of dicts for each permutation.
-    
-    Also, print the permutations and estimated time required for test. 
-    
-    Args:
-        parameters (dict): Dict with keyed parameters.
-        expected_step_time (int): Time in seconds that each permutation will require.
-    
-    Returns:
-        list(dict): All parameter permutation configurations as list of keyed values. 
-    """
-
-    # Get permutations of all parameters
-    permutations = []
-    for param_indices in np.array(np.meshgrid(*[list(range(len(item))) for key, item in parameters.items()])).T.reshape(-1,len(parameters.keys())):
-        permutations.append({key: item[idx] for idx, (key, item) in zip(param_indices, parameters.items())})
-  
-    ## calculate expected time for test
-    expected_sec = expected_step_sec * len(permutations)
-
-    
-    # Print preparation analysis
-    print("CONFIGURATION DETAILS:")
-    print("------------------")
-    print("Total Configurations: {}".format(len(permutations)))
-    for key, item in parameters.items():
-        print("- {} ({}): {} ".format(key, len(item), item))
-    print("------------------")
-    
-    ## Print estimate processing time 
-    print("Estimated time to process:\n- {}h {}m {}s".format((expected_sec//3600), ((expected_sec%3600)// 60), (expected_sec%60)))
-    
-    ## Print estimated completion time
-    finish_time = tz.localize(dt.now()) + timedelta(seconds=expected_sec)
-    print("Estimated time of completion:", finish_time.strftime('\n- %a at %I:%M:%S%p'))
-
-    return permutations
-
 
 
 def get_model_dict(em_dict: dict): 
@@ -441,6 +373,7 @@ def get_model_dict(em_dict: dict):
                 else:
                     model_dict[em_key][rpt_key] = np.append(model_dict[em_key][rpt_key], report[rpt_key])
     return model_dict
+
 
 def print_s(idx: int=None, *args):
     """ Prints args with em step and time """
