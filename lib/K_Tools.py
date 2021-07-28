@@ -77,12 +77,11 @@ def Linear_Reduce_LR(lr, em_step, em_target):
 ### Model Preparation
 #####################
 
-def SetCallbacks(weights_out=None, es_patience = 20,rlop_factor = 0.5, tensorboard_path = None):
+def SetCallbacks(weights_out=None, es_patience = 20, rlop_factor = 0.5, tensorboard_path = None, output_level = 2):
     """ Prepare a Keras model's callbacks as a list. """
 
     # Reduce Learning Rate on Plateau
     rlop_monitor = 'val_loss'
-    
     rlop_patience = 5
     rlop_min_lr = 1e-5
     rlop_min_delt = 0.00001
@@ -91,29 +90,29 @@ def SetCallbacks(weights_out=None, es_patience = 20,rlop_factor = 0.5, tensorboa
 
     # Early Stopping
     es_monitor = 'val_loss'
-    #es_patience = 20
     es_verbosity = 0
 
-    # Model Checkpoint
-    mc_monitor = 'val_loss'
-    mc_sbo = True
-    mc_verbosity = 0
-    if weights_out == None:
-        # Backup output path 
-        weights_out = './weights.h5'
-        
-    # Tensorboard
-    if not tensorboard_path:
-        tensorboard_path = './backup_tensorboard_logs'
-    if not os.path.exists(tensorboard_path):
-        os.mkdir(tensorboard_path)
-    
     callbacks = [ 
-            ReduceLROnPlateau(monitor=rlop_monitor, factor=rlop_factor, patience=rlop_patience, min_lr=rlop_min_lr, min_deta=rlop_min_delt, verbose=rlop_verbosity, mode=rlop_mode),
-            EarlyStopping(monitor=es_monitor, patience=es_patience, verbose=es_verbosity),
-            ModelCheckpoint(weights_out, monitor=mc_monitor, save_best_only=mc_sbo, verbose=mc_verbosity),
-            TensorBoard(log_dir=tensorboard_path)
-        ]
+        ReduceLROnPlateau(monitor=rlop_monitor, factor=rlop_factor, patience=rlop_patience, min_lr=rlop_min_lr, min_deta=rlop_min_delt, verbose=rlop_verbosity, mode=rlop_mode),
+        EarlyStopping(monitor=es_monitor, patience=es_patience, verbose=es_verbosity),
+    ]
+
+    if output_level >= 1:
+        # Model Checkpoint
+        mc_monitor = 'val_loss'
+        mc_sbo = True
+        mc_verbosity = 0
+        if weights_out == None:
+            weights_out = './weights.h5'
+        callbacks.append(ModelCheckpoint(weights_out, monitor=mc_monitor, save_best_only=mc_sbo, verbose=mc_verbosity))
+    
+    if output_level >= 2:
+        # Tensorboard
+        if not tensorboard_path:
+            tensorboard_path = './backup_tensorboard_logs'
+        if not os.path.exists(tensorboard_path):
+            os.mkdir(tensorboard_path)
+        callbacks.append(TensorBoard(log_dir=tensorboard_path))
 
     return callbacks
 
